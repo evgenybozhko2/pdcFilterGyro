@@ -16,14 +16,14 @@
  *
  ******************************************************************************
  */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
+
 #include "main.h"
 #include "can.h"
 #include "i2c.h"
 #include "gpio.h"
 #include "mpu6050.h"
-
+#include "BUTTON.h"
+#include "flash_memory.h"
 
 CAN_TxHeaderTypeDef TxHeader;
 CAN_RxHeaderTypeDef RxHeader;
@@ -37,43 +37,22 @@ uint32_t TxMailbox;
 MPU6050_t MPU6050;
 
 void SystemClock_Config(void);
-
 void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void sendGyroData(int x, int y);
 
-/**
- * @brief  The application entry point.
- * @retval int
- */
 int main(void) {
-	/* USER CODE BEGIN 1 */
 
-	/* USER CODE END 1 */
-
-	/* MCU Configuration--------------------------------------------------------*/
-
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 	HAL_Init();
 
-	/* USER CODE BEGIN Init */
-
-	/* USER CODE END Init */
-
-	/* Configure the system clock */
 	SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
-
-	/* USER CODE END SysInit */
-
-	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
 	MX_CAN1_Init();
 	MX_CAN2_Init();
 	MX_I2C1_Init();
-	/* USER CODE BEGIN 2 */
 
+	//MPU initialize
 	while (MPU6050_Init(&hi2c1) == 1)
 
 		if (HAL_CAN_Start(&hcan1) != HAL_OK) {
@@ -92,12 +71,13 @@ int main(void) {
 		Error_Handler();
 	}
 
+	//loop
 	while (1) {
-		MPU6050_Read_Gyro(&hi2c1, &MPU6050);
+		MPU6050_Read_All(&hi2c1, &MPU6050);
 		HAL_Delay(100);
 
-		double pitch = MPU6050.KalmanAngleX;
-		double roll = MPU6050.KalmanAngleY;
+		double pitch = MPU6050.KalmanAngleX + readX();
+		double roll = MPU6050.KalmanAngleY + readY();
 
 		if (pitch > 40) {
 			pitch = 40;
@@ -119,14 +99,15 @@ int main(void) {
 
 		sendGyroData(pitch, roll);
 
+		if (BUTTON_STATE(CALIBRATE_MPU_BUTTON) == 1) {
+			saveX(pitch);
+			saveY(roll);
+		}
+
 		HAL_Delay(200);
 	}
 }
 
-/**
- * @brief System Clock Configuration
- * @retval None
- */
 void SystemClock_Config(void) {
 	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
@@ -159,8 +140,7 @@ void SystemClock_Config(void) {
 	__HAL_RCC_PLLI2S_ENABLE();
 }
 
-/* USER CODE BEGIN 4 */
-
+// can fifo callback
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK) {
 
@@ -221,12 +201,6 @@ void sendGyroData(int x, int y) {
 	HAL_CAN_AddTxMessage(&hcan1, &gyroHeader, gyroData, &TxMailbox);
 }
 
-/* USER CODE END 4 */
-
-/**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
 void Error_Handler(void) {
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
