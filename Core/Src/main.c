@@ -24,26 +24,6 @@
 #include "gpio.h"
 #include "mpu6050.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* USER CODE BEGIN PV */
 
 CAN_TxHeaderTypeDef TxHeader;
 CAN_RxHeaderTypeDef RxHeader;
@@ -56,19 +36,11 @@ uint32_t TxMailbox;
 
 MPU6050_t MPU6050;
 
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-/* USER CODE BEGIN PFP */
-
-/* USER CODE END PFP */
-
-/* USER CODE BEGIN PFP */
 
 void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void sendGyroData(int x, int y);
-
-/* USER CODE END 0 */
 
 /**
  * @brief  The application entry point.
@@ -100,6 +72,7 @@ int main(void) {
 	MX_CAN1_Init();
 	MX_CAN2_Init();
 	MX_I2C1_Init();
+	/* USER CODE BEGIN 2 */
 
 	while (MPU6050_Init(&hi2c1) == 1)
 
@@ -119,10 +92,6 @@ int main(void) {
 		Error_Handler();
 	}
 
-	/* USER CODE END 2 */
-
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
 	while (1) {
 		MPU6050_Read_Gyro(&hi2c1, &MPU6050);
 		HAL_Delay(100);
@@ -152,7 +121,6 @@ int main(void) {
 
 		HAL_Delay(200);
 	}
-	/* USER CODE END 3 */
 }
 
 /**
