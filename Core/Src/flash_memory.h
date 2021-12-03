@@ -6,26 +6,26 @@
 uint32_t xAddress = (uint32_t) 0x08008000;
 uint32_t yAddress = (uint32_t) 0x09009000;
 
-extern void saveX(double x);
-extern void saveY(double y);
-extern double readX();
-extern double readY();
+extern void saveXToFlash(double x);
+extern void saveYToFlash(double y);
+extern double readXFromFlash();
+extern double readYFromFlash();
 double readFlash(uint32_t address);
 void writeFlash(uint32_t address, double data);
 
-void saveX(double x) {
+void saveXToFlash(double x) {
 	writeFlash(xAddress, x);
 }
 
-void saveY(double y) {
+void saveYToFlash(double y) {
 	writeFlash(yAddress, y);
 }
 
-double readX() {
+double readXFromFlash() {
 	return readFlash(xAddress);
 }
 
-double readY() {
+double readYFromFlash() {
 	return readFlash(yAddress);
 }
 

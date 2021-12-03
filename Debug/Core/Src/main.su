@@ -1,7 +1,7 @@
-flash_memory.h:16:6:saveX	16	static
-flash_memory.h:20:6:saveY	16	static
-flash_memory.h:24:8:readX	8	static
-flash_memory.h:28:8:readY	8	static
+flash_memory.h:16:6:saveXToFlash	16	static
+flash_memory.h:20:6:saveYToFlash	16	static
+flash_memory.h:24:8:readXFromFlash	8	static
+flash_memory.h:28:8:readYFromFlash	8	static
 flash_memory.h:32:6:writeFlash	32	static
 flash_memory.h:43:8:readFlash	16	static
 main.c:44:5:main	32	static

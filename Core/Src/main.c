@@ -76,8 +76,8 @@ int main(void) {
 		MPU6050_Read_All(&hi2c1, &MPU6050);
 		HAL_Delay(100);
 
-		double pitch = MPU6050.KalmanAngleX + readX();
-		double roll = MPU6050.KalmanAngleY + readY();
+		double pitch = readXFromFlash() - MPU6050.KalmanAngleX;
+		double roll = readYFromFlash() - MPU6050.KalmanAngleY;
 
 		if (pitch > 40) {
 			pitch = 40;
@@ -100,8 +100,8 @@ int main(void) {
 		sendGyroData(pitch, roll);
 
 		if (BUTTON_STATE(CALIBRATE_MPU_BUTTON) == 1) {
-			saveX(pitch);
-			saveY(roll);
+			saveXToFlash(pitch);
+			saveYToFlash(roll);
 		}
 
 		HAL_Delay(200);
