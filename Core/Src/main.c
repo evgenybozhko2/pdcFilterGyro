@@ -24,6 +24,7 @@
 #include "mpu6050.h"
 #include "BUTTON.h"
 #include "flash_memory.h"
+#include <stdio.h>
 
 CAN_TxHeaderTypeDef TxHeader;
 CAN_RxHeaderTypeDef RxHeader;
@@ -41,11 +42,20 @@ void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void sendGyroData(int x, int y);
 
+int _write(int32_t file, uint8_t *ptr, int32_t len) {
+	for (int i = 0; i < len; i++) {
+		ITM_SendChar(*ptr++);
+	}
+	return len;
+}
+
 int main(void) {
 
 	HAL_Init();
 
 	SystemClock_Config();
+
+	printf("testttstt");
 
 	MX_GPIO_Init();
 	MX_CAN1_Init();
