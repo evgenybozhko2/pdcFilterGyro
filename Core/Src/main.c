@@ -24,6 +24,7 @@
 #include "mpu6050.h"
 #include "BUTTON.h"
 #include "flash_memory.h"
+#include "stdio.h"
 
 CAN_TxHeaderTypeDef TxHeader;
 CAN_RxHeaderTypeDef RxHeader;
@@ -41,6 +42,15 @@ void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void sendGyroData(int x, int y);
 
+int _write(int32_t file, uint8_t *ptr, int32_t len) {
+	/* Implement your write code here, this is used by puts and printf for example */
+	int i = 0;
+	for (i = 0; i < len; i++)
+		ITM_SendChar((*ptr++));
+	return len;
+
+}
+
 int main(void) {
 
 	HAL_Init();
@@ -51,13 +61,17 @@ int main(void) {
 	MX_CAN1_Init();
 	MX_CAN2_Init();
 	MX_I2C1_Init();
+	flashMemoryInit();
+
+	printf("okokokokoo");
 
 	//MPU initialize
 	while (MPU6050_Init(&hi2c1) == 1)
+		;
 
-		if (HAL_CAN_Start(&hcan1) != HAL_OK) {
-			Error_Handler();
-		}
+	if (HAL_CAN_Start(&hcan1) != HAL_OK) {
+		Error_Handler();
+	}
 	if (HAL_CAN_ActivateNotification(&hcan1,
 	CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK) {
 		Error_Handler();
@@ -74,10 +88,15 @@ int main(void) {
 	//loop
 	while (1) {
 		MPU6050_Read_All(&hi2c1, &MPU6050);
-		HAL_Delay(100);
 
-		double pitch = readXFromFlash() - MPU6050.KalmanAngleX;
-		double roll = readYFromFlash() - MPU6050.KalmanAngleY;
+		double realX = MPU6050.KalmanAngleX;
+		double realY = MPU6050.KalmanAngleY;
+
+		double storedX = readXFromFlash();
+		double storedY = readYFromFlash();
+
+		double pitch = storedX - realX;
+		double roll = storedY - realY;
 
 		if (pitch > 40) {
 			pitch = 40;
@@ -97,11 +116,12 @@ int main(void) {
 		//29 & -29 degree max
 		roll += 0x78;
 
-		sendGyroData(pitch, roll);
+		if (isCorrectionAssign) {
+			sendGyroData(pitch, roll);
+		}
 
-		if (BUTTON_STATE(CALIBRATE_MPU_BUTTON) == 1) {
-			saveXToFlash(pitch);
-			saveYToFlash(roll);
+		if (BUTTON_STATE(CALIBRATE_MPU_BUTTON) == 1 || !isCorrectionAssign) {
+			saveGyroData(realX, realY);
 		}
 
 		HAL_Delay(200);
@@ -172,7 +192,9 @@ void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
 	TxData[5] = DATA_CAN[5];
 	TxData[6] = DATA_CAN[6];
 	TxData[7] = DATA_CAN[7];
-	HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox);
+	if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
+		Error_Handler();
+	}
 }
 void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
 	TxHeader.StdId = RxHeader.StdId;
@@ -185,11 +207,13 @@ void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
 	TxData[5] = DATA_CAN[5];
 	TxData[6] = DATA_CAN[6];
 	TxData[7] = DATA_CAN[7];
-	HAL_CAN_AddTxMessage(&hcan2, &TxHeader, TxData, &TxMailbox);
+	if (HAL_CAN_AddTxMessage(&hcan2, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
+		Error_Handler();
+	}
 }
 void sendGyroData(int x, int y) {
 	gyroHeader.StdId = 0x685;
-	gyroHeader.DLC = 8;
+	gyroHeader.DLC = 2;
 	gyroData[0] = y;
 	gyroData[1] = x;
 	gyroData[3] = 0x00;
@@ -198,7 +222,16 @@ void sendGyroData(int x, int y) {
 	gyroData[6] = 0x00;
 	gyroData[7] = 0x00;
 
-	HAL_CAN_AddTxMessage(&hcan1, &gyroHeader, gyroData, &TxMailbox);
+	if (HAL_CAN_AddTxMessage(&hcan1, &gyroHeader, gyroData, &TxMailbox)
+			!= HAL_OK) {
+		Error_Handler();
+	}
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
+	uint32_t er = HAL_CAN_GetError(hcan);
+	const char trans_str[] = "can error";
+	sprintf(trans_str, "ER CAN %lu %08lX", er, er);
 }
 
 void Error_Handler(void) {

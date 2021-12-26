@@ -1,0 +1,7 @@
+eeprom.c:33:15:EEPROM_Init	40	static
+eeprom.c:116:15:EEPROM_ReadVariable	40	static
+eeprom.c:164:15:EEPROM_WriteVariable	56	static
+eeprom.c:251:15:EEPROM_DeleteVariable	24	static
+eeprom.c:266:22:EEPROM_PageTransfer	32	static
+eeprom.c:313:22:EEPROM_SetPageStatus	48	static
+eeprom.c:388:22:EEPROM_PageToIndex	40	static
