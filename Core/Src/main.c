@@ -213,7 +213,7 @@ void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
 }
 void sendGyroData(int x, int y) {
 	gyroHeader.StdId = 0x685;
-	gyroHeader.DLC = 2;
+	gyroHeader.DLC = 8;
 	gyroData[0] = y;
 	gyroData[1] = x;
 	gyroData[3] = 0x00;
@@ -222,8 +222,10 @@ void sendGyroData(int x, int y) {
 	gyroData[6] = 0x00;
 	gyroData[7] = 0x00;
 
-	if (HAL_CAN_AddTxMessage(&hcan1, &gyroHeader, gyroData, &TxMailbox)
-			!= HAL_OK) {
+	HAL_StatusTypeDef res = HAL_CAN_AddTxMessage(&hcan1, &gyroHeader, gyroData,
+			&TxMailbox);
+
+	if (res != HAL_OK) {
 		Error_Handler();
 	}
 }
@@ -231,7 +233,6 @@ void sendGyroData(int x, int y) {
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
 	uint32_t er = HAL_CAN_GetError(hcan);
 	const char trans_str[] = "can error";
-	sprintf(trans_str, "ER CAN %lu %08lX", er, er);
 }
 
 void Error_Handler(void) {
