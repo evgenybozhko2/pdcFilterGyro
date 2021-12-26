@@ -4,7 +4,7 @@
 #include "stm32f1xx_hal.h"
 
 uint32_t xAddress = (uint32_t) 0x08008000;
-uint32_t yAddress = (uint32_t) 0x09009000;
+uint32_t yAddress = (uint32_t) 0x08008064;
 
 extern void saveXToFlash(double x);
 extern void saveYToFlash(double y);
