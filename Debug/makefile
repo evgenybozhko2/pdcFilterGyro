@@ -63,8 +63,8 @@ all: main-build
 main-build: CanRetranslatorWithGyro.elf secondary-outputs
 
 # Tool invocations
-CanRetranslatorWithGyro.elf: $(OBJS) $(USER_OBJS) /Users/evgeny/projects/CanRetranslatorWithGyro/STM32F105R8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "CanRetranslatorWithGyro.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/Users/evgeny/projects/CanRetranslatorWithGyro/STM32F105R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CanRetranslatorWithGyro.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+CanRetranslatorWithGyro.elf: $(OBJS) $(USER_OBJS) /Users/evgenybozhko/Projects/pdcFilterGyro/STM32F105R8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "CanRetranslatorWithGyro.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/Users/evgenybozhko/Projects/pdcFilterGyro/STM32F105R8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CanRetranslatorWithGyro.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

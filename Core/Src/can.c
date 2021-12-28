@@ -57,7 +57,7 @@ void MX_CAN1_Init(void) {
 	sFilterConfig.FilterMaskIdLow = 0x0000;
 	sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
 	sFilterConfig.FilterActivation = ENABLE;
-	sFilterConfig.SlaveStartFilterBank = 0;
+	sFilterConfig.SlaveStartFilterBank = 14;
 
 	if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK) {
 		Error_Handler();
