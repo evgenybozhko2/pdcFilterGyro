@@ -26,14 +26,18 @@
 #include "flash_memory.h"
 #include "stdio.h"
 
-CAN_TxHeaderTypeDef TxHeader;
-CAN_RxHeaderTypeDef RxHeader;
-CAN_TxHeaderTypeDef gyroHeader;
+CAN_TxHeaderTypeDef TxHeaderCan1;
+CAN_RxHeaderTypeDef RxHeaderCan1;
+CAN_TxHeaderTypeDef TxHeaderCan2;
+CAN_RxHeaderTypeDef RxHeaderCan2;
 
-uint8_t TxData[8];
-uint8_t RxData[8];
-uint8_t gyroData[8];
-uint32_t TxMailbox;
+uint8_t TxDataCan1[8];
+uint8_t RxDataCan1[8];
+uint8_t TxDataCan2[8];
+uint8_t RxDataCan2[8];
+
+uint32_t TxMailboxCan1;
+uint32_t TxMailboxCan2;
 
 MPU6050_t MPU6050;
 
@@ -41,15 +45,6 @@ void SystemClock_Config(void);
 void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void sendGyroData(int x, int y);
-
-int _write(int32_t file, uint8_t *ptr, int32_t len) {
-	/* Implement your write code here, this is used by puts and printf for example */
-	int i = 0;
-	for (i = 0; i < len; i++)
-		ITM_SendChar((*ptr++));
-	return len;
-
-}
 
 int main(void) {
 
@@ -66,14 +61,15 @@ int main(void) {
 	printf("okokokokoo");
 
 	//MPU initialize
-	while (MPU6050_Init(&hi2c1) == 1)
-		;
+	while (MPU6050_Init(&hi2c1) == 1) {
+
+	}
 
 	if (HAL_CAN_Start(&hcan1) != HAL_OK) {
 		Error_Handler();
 	}
 	if (HAL_CAN_ActivateNotification(&hcan1,
-	CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK) {
+	CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK) {
 		Error_Handler();
 	}
 
@@ -81,7 +77,7 @@ int main(void) {
 		Error_Handler();
 	}
 	if (HAL_CAN_ActivateNotification(&hcan2,
-	CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK) {
+	CAN_IT_RX_FIFO1_MSG_PENDING | CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK) {
 		Error_Handler();
 	}
 
@@ -159,88 +155,100 @@ void SystemClock_Config(void) {
 	__HAL_RCC_PLLI2S_ENABLE();
 }
 
-// can fifo callback
+// can fifo0 can1 callback
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK) {
-
-		switch ((uint32_t) hcan->Instance) {
-		case (uint32_t) CAN2:
-			CAN1_Transmit_manual(RxHeader.StdId, RxHeader.DLC, RxData);
-			break;
-		case (uint32_t) CAN1:
-			if (RxHeader.StdId == 0x350 && RxData[0] == 0xc7) {
-				RxData[0] = 0xc6;
-			}
-
-			CAN2_Transmit_manual(RxHeader.StdId, RxHeader.DLC, RxData);
-			break;
+	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeaderCan1, RxDataCan1)) {
+		if (RxHeaderCan1.StdId == 0x350 && RxDataCan1[0] == 0xc7) {
+			RxDataCan1[0] = 0xc6;
 		}
 
+		CAN2_Transmit_manual(RxHeaderCan1.StdId, RxHeaderCan1.DLC, RxDataCan1);
 	}
+}
 
+// can fifo1 for can2 callback
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeaderCan2, RxDataCan2)
+			== HAL_OK) {
+		CAN1_Transmit_manual(RxHeaderCan2.StdId, RxHeaderCan2.DLC, RxDataCan2);
+	}
 }
 
 void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
-	TxHeader.StdId = RxHeader.StdId;
-	TxHeader.DLC = RxHeader.DLC;
-	TxData[0] = DATA_CAN[0];
-	TxData[1] = DATA_CAN[1];
-	TxData[2] = DATA_CAN[2];
-	TxData[3] = DATA_CAN[3];
-	TxData[4] = DATA_CAN[4];
-	TxData[5] = DATA_CAN[5];
-	TxData[6] = DATA_CAN[6];
-	TxData[7] = DATA_CAN[7];
-	if (HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
+	//wait while mailbox will be free
+	while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) == 0) {
+
+	}
+
+	TxHeaderCan1.StdId = ID_CAN;
+	TxHeaderCan1.DLC = DLC_CAN;
+	TxDataCan1[0] = DATA_CAN[0];
+	TxDataCan1[1] = DATA_CAN[1];
+	TxDataCan1[2] = DATA_CAN[2];
+	TxDataCan1[3] = DATA_CAN[3];
+	TxDataCan1[4] = DATA_CAN[4];
+	TxDataCan1[5] = DATA_CAN[5];
+	TxDataCan1[6] = DATA_CAN[6];
+	TxDataCan1[7] = DATA_CAN[7];
+	if (HAL_CAN_AddTxMessage(&hcan1, &TxHeaderCan1, TxDataCan1, &TxMailboxCan1)
+			!= HAL_OK) {
 		Error_Handler();
+	}
+
+	//wait while message will sent
+	while (HAL_CAN_IsTxMessagePending(&hcan1, TxMailboxCan1)) {
+		printf("pending can1");
 	}
 }
 void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
-	TxHeader.StdId = RxHeader.StdId;
-	TxHeader.DLC = RxHeader.DLC;
-	TxData[0] = DATA_CAN[0];
-	TxData[1] = DATA_CAN[1];
-	TxData[2] = DATA_CAN[2];
-	TxData[3] = DATA_CAN[3];
-	TxData[4] = DATA_CAN[4];
-	TxData[5] = DATA_CAN[5];
-	TxData[6] = DATA_CAN[6];
-	TxData[7] = DATA_CAN[7];
-	if (HAL_CAN_AddTxMessage(&hcan2, &TxHeader, TxData, &TxMailbox) != HAL_OK) {
+	//wait while mailbox will be free
+	while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan2) == 0) {
+
+	}
+
+	TxHeaderCan2.StdId = ID_CAN;
+	TxHeaderCan2.DLC = DLC_CAN;
+	TxDataCan2[0] = DATA_CAN[0];
+	TxDataCan2[1] = DATA_CAN[1];
+	TxDataCan2[2] = DATA_CAN[2];
+	TxDataCan2[3] = DATA_CAN[3];
+	TxDataCan2[4] = DATA_CAN[4];
+	TxDataCan2[5] = DATA_CAN[5];
+	TxDataCan2[6] = DATA_CAN[6];
+	TxDataCan2[7] = DATA_CAN[7];
+	if (HAL_CAN_AddTxMessage(&hcan2, &TxHeaderCan2, TxDataCan2, &TxMailboxCan2)
+			!= HAL_OK) {
 		Error_Handler();
+	}
+
+	//wait while message will sent
+	while (HAL_CAN_IsTxMessagePending(&hcan2, TxMailboxCan2)) {
 	}
 }
 void sendGyroData(int x, int y) {
-	gyroHeader.StdId = 0x685;
-	gyroHeader.DLC = 8;
-	gyroData[0] = y;
-	gyroData[1] = x;
-	gyroData[3] = 0x00;
-	gyroData[4] = 0x00;
-	gyroData[5] = 0x00;
-	gyroData[6] = 0x00;
-	gyroData[7] = 0x00;
+	TxDataCan1[0] = y;
+	TxDataCan1[1] = x;
+	TxDataCan1[2] = 0x00;
+	TxDataCan1[3] = 0x00;
+	TxDataCan1[4] = 0x00;
+	TxDataCan1[5] = 0x00;
+	TxDataCan1[6] = 0x00;
+	TxDataCan1[7] = 0x00;
 
-	HAL_StatusTypeDef res = HAL_CAN_AddTxMessage(&hcan1, &gyroHeader, gyroData,
-			&TxMailbox);
-
-	if (res != HAL_OK) {
-		Error_Handler();
-	}
+	CAN1_Transmit_manual(0x685, 8, TxDataCan1);
 }
 
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
 	uint32_t er = HAL_CAN_GetError(hcan);
-	const char trans_str[] = "can error";
+	printf("error");
 }
 
 void Error_Handler(void) {
-	/* USER CODE BEGIN Error_Handler_Debug */
-	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
+
 	while (1) {
+
 	}
-	/* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
