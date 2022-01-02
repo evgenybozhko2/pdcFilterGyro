@@ -58,8 +58,6 @@ int main(void) {
 	MX_I2C1_Init();
 	flashMemoryInit();
 
-	printf("okokokokoo");
-
 	//MPU initialize
 	while (MPU6050_Init(&hi2c1) == 1) {
 
@@ -69,7 +67,8 @@ int main(void) {
 		Error_Handler();
 	}
 	if (HAL_CAN_ActivateNotification(&hcan1,
-	CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK) {
+			CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_ERROR | CAN_IT_BUSOFF
+					| CAN_IT_LAST_ERROR_CODE) != HAL_OK) {
 		Error_Handler();
 	}
 
@@ -77,50 +76,51 @@ int main(void) {
 		Error_Handler();
 	}
 	if (HAL_CAN_ActivateNotification(&hcan2,
-	CAN_IT_RX_FIFO1_MSG_PENDING | CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK) {
+			CAN_IT_RX_FIFO1_MSG_PENDING | CAN_IT_ERROR | CAN_IT_BUSOFF
+					| CAN_IT_LAST_ERROR_CODE) != HAL_OK) {
 		Error_Handler();
 	}
 
-	//loop
+//	//loop
 	while (1) {
-		MPU6050_Read_All(&hi2c1, &MPU6050);
-
-		double realX = MPU6050.KalmanAngleX;
-		double realY = MPU6050.KalmanAngleY;
-
-		double storedX = readXFromFlash();
-		double storedY = readYFromFlash();
-
-		double pitch = storedX - realX;
-		double roll = storedY - realY;
-
-		if (pitch > 40) {
-			pitch = 40;
-		}
-		if (pitch < -40) {
-			pitch = -40;
-		}
-		if (roll > 60) {
-			roll = 60;
-		}
-		if (roll < -60) {
-			roll = -60;
-		}
-
-		//20 & -20 degree max
-		pitch += 0x78;
-		//29 & -29 degree max
-		roll += 0x78;
-
-		if (isCorrectionAssign) {
-			sendGyroData(pitch, roll);
-		}
-
-		if (BUTTON_STATE(CALIBRATE_MPU_BUTTON) == 1 || !isCorrectionAssign) {
-			saveGyroData(realX, realY);
-		}
-
-		HAL_Delay(200);
+//		MPU6050_Read_All(&hi2c1, &MPU6050);
+//
+//		double realX = MPU6050.KalmanAngleX;
+//		double realY = MPU6050.KalmanAngleY;
+//
+//		double storedX = readXFromFlash();
+//		double storedY = readYFromFlash();
+//
+//		double pitch = storedX - realX;
+//		double roll = storedY - realY;
+//
+//		if (pitch > 40) {
+//			pitch = 40;
+//		}
+//		if (pitch < -40) {
+//			pitch = -40;
+//		}
+//		if (roll > 60) {
+//			roll = 60;
+//		}
+//		if (roll < -60) {
+//			roll = -60;
+//		}
+//
+//		//20 & -20 degree max
+//		pitch += 0x78;
+//		//29 & -29 degree max
+//		roll += 0x78;
+//
+//		if (isCorrectionAssign) {
+////			sendGyroData(pitch, roll);
+//		}
+//
+//		if (BUTTON_STATE(CALIBRATE_MPU_BUTTON) == 1 || !isCorrectionAssign) {
+//			saveGyroData(realX, realY);
+//		}
+//
+//		HAL_Delay(200);
 	}
 }
 
@@ -241,6 +241,8 @@ void sendGyroData(int x, int y) {
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
 	uint32_t er = HAL_CAN_GetError(hcan);
 	printf("error");
+
+	HAL_CAN_ResetError(&hcan);
 }
 
 void Error_Handler(void) {

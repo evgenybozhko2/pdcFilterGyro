@@ -27,8 +27,6 @@
 CAN_HandleTypeDef hcan1;
 CAN_HandleTypeDef hcan2;
 
-CAN_FilterTypeDef sFilterConfig;
-
 /* CAN1 init function */
 void MX_CAN1_Init(void) {
 	hcan1.Instance = CAN1;
@@ -47,6 +45,7 @@ void MX_CAN1_Init(void) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN CAN1_Init 2 */
+	CAN_FilterTypeDef sFilterConfig;
 
 	sFilterConfig.FilterBank = 0;
 	sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
@@ -81,6 +80,7 @@ void MX_CAN2_Init(void) {
 	if (HAL_CAN_Init(&hcan2) != HAL_OK) {
 		Error_Handler();
 	}
+	CAN_FilterTypeDef sFilterConfig;
 
 	sFilterConfig.FilterBank = 14;
 	sFilterConfig.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -93,7 +93,7 @@ void MX_CAN2_Init(void) {
 	sFilterConfig.FilterActivation = ENABLE;
 	sFilterConfig.SlaveStartFilterBank = 14;
 
-	if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK) {
+	if (HAL_CAN_ConfigFilter(&hcan2, &sFilterConfig) != HAL_OK) {
 		Error_Handler();
 	}
 

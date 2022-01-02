@@ -4,7 +4,7 @@ flash_memory.h:50:8:readXFromFlash	8	static
 flash_memory.h:54:8:readYFromFlash	8	static
 flash_memory.h:58:6:writeFlash	40	static
 flash_memory.h:64:8:readFlash	24	static
-main.c:49:5:main	64	static
+main.c:49:5:main	8	static
 main.c:127:6:SystemClock_Config	88	static
 main.c:159:6:HAL_CAN_RxFifo0MsgPendingCallback	16	static
 main.c:170:6:HAL_CAN_RxFifo1MsgPendingCallback	16	static
@@ -12,4 +12,4 @@ main.c:177:6:CAN1_Transmit_manual	16	static
 main.c:203:6:CAN2_Transmit_manual	16	static
 main.c:228:6:sendGyroData	16	static
 main.c:241:6:HAL_CAN_ErrorCallback	24	static
-main.c:246:6:Error_Handler	4	static,ignoring_inline_asm
+main.c:248:6:Error_Handler	4	static,ignoring_inline_asm
