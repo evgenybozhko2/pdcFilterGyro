@@ -79,46 +79,46 @@ int main(void) {
 		Error_Handler();
 	}
 
-//	//loop
+	//loop
 	while (1) {
-//		MPU6050_Read_All(&hi2c1, &MPU6050);
-//
-//		double realX = MPU6050.KalmanAngleX;
-//		double realY = MPU6050.KalmanAngleY;
-//
-//		double storedX = readXFromFlash();
-//		double storedY = readYFromFlash();
-//
-//		double pitch = storedX - realX;
-//		double roll = storedY - realY;
-//
-//		if (pitch > 40) {
-//			pitch = 40;
-//		}
-//		if (pitch < -40) {
-//			pitch = -40;
-//		}
-//		if (roll > 60) {
-//			roll = 60;
-//		}
-//		if (roll < -60) {
-//			roll = -60;
-//		}
-//
-//		//20 & -20 degree max
-//		pitch += 0x78;
-//		//29 & -29 degree max
-//		roll += 0x78;
-//
-//		if (isCorrectionAssign) {
-////			sendGyroData(pitch, roll);
-//		}
-//
-//		if (BUTTON_STATE(CALIBRATE_MPU_BUTTON) == 1 || !isCorrectionAssign) {
-//			saveGyroData(realX, realY);
-//		}
-//
-//		HAL_Delay(200);
+		MPU6050_Read_All(&hi2c1, &MPU6050);
+
+		double realX = MPU6050.KalmanAngleX;
+		double realY = MPU6050.KalmanAngleY;
+
+		double storedX = readXFromFlash();
+		double storedY = readYFromFlash();
+
+		double pitch = storedX - realX;
+		double roll = storedY - realY;
+
+		if (pitch > 40) {
+			pitch = 40;
+		}
+		if (pitch < -40) {
+			pitch = -40;
+		}
+		if (roll > 60) {
+			roll = 60;
+		}
+		if (roll < -60) {
+			roll = -60;
+		}
+
+		//20 & -20 degree max
+		pitch += 0x78;
+		//29 & -29 degree max
+		roll += 0x78;
+
+		if (isCorrectionAssign) {
+			sendGyroData(pitch, roll);
+		}
+
+		if (BUTTON_STATE(CALIBRATE_MPU_BUTTON) == 1 || !isCorrectionAssign) {
+			saveGyroData(realX, realY);
+		}
+
+		HAL_Delay(200);
 	}
 }
 
@@ -166,6 +166,10 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 			== HAL_OK) {
 		if (RxHeaderCan1.StdId == 0x350 && RxDataCan1[0] == 0xc7) {
 			RxDataCan1[0] = 0xc6;
+		}
+
+		if (RxHeaderCan1.StdId == 0x685){
+			printf("wawdaw");
 		}
 
 //		CAN2_Transmit_manual(RxHeaderCan1.StdId, RxHeaderCan1.DLC, RxDataCan1);
