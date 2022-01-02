@@ -44,6 +44,15 @@ void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void sendGyroData(int x, int y);
 
+int _write(int32_t file, uint8_t *ptr, int32_t len) {
+	/* Implement your write code here, this is used by puts and printf for example */
+	int i = 0;
+	for (i = 0; i < len; i++)
+		ITM_SendChar((*ptr++));
+	return len;
+
+}
+
 int main(void) {
 
 	HAL_Init();
@@ -118,7 +127,7 @@ int main(void) {
 			saveGyroData(realX, realY);
 		}
 
-		HAL_Delay(200);
+		HAL_Delay(500);
 	}
 }
 
@@ -166,10 +175,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 			== HAL_OK) {
 		if (RxHeaderCan1.StdId == 0x350 && RxDataCan1[0] == 0xc7) {
 			RxDataCan1[0] = 0xc6;
-		}
-
-		if (RxHeaderCan1.StdId == 0x685){
-			printf("wawdaw");
 		}
 
 //		CAN2_Transmit_manual(RxHeaderCan1.StdId, RxHeaderCan1.DLC, RxDataCan1);
