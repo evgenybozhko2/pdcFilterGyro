@@ -30,11 +30,11 @@ CAN_HandleTypeDef hcan2;
 /* CAN1 init function */
 void MX_CAN1_Init(void) {
 	hcan1.Instance = CAN1;
-	hcan1.Init.Prescaler = 1;
+	hcan1.Init.Prescaler = 8;
 	hcan1.Init.Mode = CAN_MODE_NORMAL;
 	hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-	hcan1.Init.TimeSeg1 = CAN_BS1_9TQ;
-	hcan1.Init.TimeSeg2 = CAN_BS2_6TQ;
+	hcan1.Init.TimeSeg1 = CAN_BS1_4TQ;
+	hcan1.Init.TimeSeg2 = CAN_BS2_3TQ;
 	hcan1.Init.TimeTriggeredMode = DISABLE;
 	hcan1.Init.AutoBusOff = ENABLE;
 	hcan1.Init.AutoWakeUp = DISABLE;
@@ -44,7 +44,7 @@ void MX_CAN1_Init(void) {
 	if (HAL_CAN_Init(&hcan1) != HAL_OK) {
 		Error_Handler();
 	}
-	/* USER CODE BEGIN CAN1_Init 2 */
+
 	CAN_FilterTypeDef sFilterConfig;
 
 	sFilterConfig.FilterBank = 0;
@@ -66,10 +66,10 @@ void MX_CAN1_Init(void) {
 /* CAN2 init function */
 void MX_CAN2_Init(void) {
 	hcan2.Instance = CAN2;
-	hcan2.Init.Prescaler = 5;
+	hcan2.Init.Prescaler = 8;
 	hcan2.Init.Mode = CAN_MODE_NORMAL;
 	hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
-	hcan2.Init.TimeSeg1 = CAN_BS1_6TQ;
+	hcan2.Init.TimeSeg1 = CAN_BS1_4TQ;
 	hcan2.Init.TimeSeg2 = CAN_BS2_3TQ;
 	hcan2.Init.TimeTriggeredMode = DISABLE;
 	hcan2.Init.AutoBusOff = ENABLE;
@@ -80,6 +80,7 @@ void MX_CAN2_Init(void) {
 	if (HAL_CAN_Init(&hcan2) != HAL_OK) {
 		Error_Handler();
 	}
+
 	CAN_FilterTypeDef sFilterConfig;
 
 	sFilterConfig.FilterBank = 14;
@@ -169,9 +170,14 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef *canHandle) {
 
 		__HAL_AFIO_REMAP_CAN2_ENABLE();
 
-		/* USER CODE BEGIN CAN2_MspInit 1 */
-
-		/* USER CODE END CAN2_MspInit 1 */
+		HAL_NVIC_SetPriority(CAN2_TX_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(CAN2_TX_IRQn);
+		HAL_NVIC_SetPriority(CAN2_RX0_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(CAN2_RX0_IRQn);
+		HAL_NVIC_SetPriority(CAN2_RX1_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(CAN2_RX1_IRQn);
+		HAL_NVIC_SetPriority(CAN2_SCE_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(CAN2_SCE_IRQn);
 	}
 }
 
@@ -218,9 +224,10 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef *canHandle) {
 		 */
 		HAL_GPIO_DeInit(GPIOB, GPIO_PIN_5 | GPIO_PIN_6);
 
-		/* USER CODE BEGIN CAN2_MspDeInit 1 */
-
-		/* USER CODE END CAN2_MspDeInit 1 */
+		HAL_NVIC_DisableIRQ(CAN2_TX_IRQn);
+		HAL_NVIC_DisableIRQ(CAN2_RX0_IRQn);
+		HAL_NVIC_DisableIRQ(CAN2_RX1_IRQn);
+		HAL_NVIC_DisableIRQ(CAN2_SCE_IRQn);
 	}
 }
 
