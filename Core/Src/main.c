@@ -44,15 +44,6 @@ void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
 void sendGyroData(int x, int y);
 
-int _write(int32_t file, uint8_t *ptr, int32_t len) {
-	/* Implement your write code here, this is used by puts and printf for example */
-	int i = 0;
-	for (i = 0; i < len; i++)
-		ITM_SendChar((*ptr++));
-	return len;
-
-}
-
 int main(void) {
 
 	HAL_Init();
@@ -64,11 +55,6 @@ int main(void) {
 	MX_CAN2_Init();
 	MX_I2C1_Init();
 	flashMemoryInit();
-
-	//MPU initialize
-	while (MPU6050_Init(&hi2c1) == 1) {
-
-	}
 
 	if (HAL_CAN_Start(&hcan1) != HAL_OK) {
 		Error_Handler();
@@ -86,6 +72,16 @@ int main(void) {
 			CAN_IT_RX_FIFO1_MSG_PENDING | CAN_IT_ERROR | CAN_IT_BUSOFF
 					| CAN_IT_LAST_ERROR_CODE) != HAL_OK) {
 		Error_Handler();
+	}
+
+	//MPU initialize
+	while (MPU6050_Init(&hi2c1) == 1) {
+
+	}
+
+	for (int i = 0; i < 20; i++) {
+		MPU6050_Read_All(&hi2c1, &MPU6050);
+		HAL_Delay(500);
 	}
 
 	//loop
