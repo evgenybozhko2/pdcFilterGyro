@@ -9,11 +9,11 @@ uint8_t BUTTON_STATE(uint8_t num) {
 
 	case CALIBRATE_MPU_BUTTON:
 
-		if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_0) == GPIO_PIN_SET) {
-			return 1;
-		} else if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_0) == GPIO_PIN_RESET) {
+		if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) == GPIO_PIN_SET) {
 			return 0;
+		} else if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15) == GPIO_PIN_RESET) {
+			return 1;
 		}
 		break;
 	}
-};
+}

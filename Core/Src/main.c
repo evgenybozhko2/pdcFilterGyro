@@ -40,8 +40,8 @@ uint32_t TxMailboxCan2;
 MPU6050_t MPU6050;
 
 void SystemClock_Config(void);
-void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
-void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN);
+void CAN1_Transmit_manual(uint32_t ID_CAN, uint32_t DLC_CAN, uint8_t *DATA_CAN);
+void CAN2_Transmit_manual(uint32_t ID_CAN, uint32_t DLC_CAN, uint8_t *DATA_CAN);
 void sendGyroData(int x, int y);
 
 int main(void) {
@@ -76,12 +76,6 @@ int main(void) {
 
 	//MPU initialize
 	while (MPU6050_Init(&hi2c1) == 1) {
-
-	}
-
-	for (int i = 0; i < 20; i++) {
-		MPU6050_Read_All(&hi2c1, &MPU6050);
-		HAL_Delay(500);
 	}
 
 	//loop
@@ -94,14 +88,14 @@ int main(void) {
 		double storedX = readXFromFlash();
 		double storedY = readYFromFlash();
 
-		double pitch = storedX - realX;
-		double roll = storedY - realY;
+		double pitch = storedY - realY;
+		double roll = storedX - realX;
 
-		if (pitch > 40) {
-			pitch = 40;
+		if (pitch > 60) {
+			pitch = 60;
 		}
-		if (pitch < -40) {
-			pitch = -40;
+		if (pitch < -60) {
+			pitch = -60;
 		}
 		if (roll > 60) {
 			roll = 60;
@@ -123,7 +117,7 @@ int main(void) {
 			saveGyroData(realX, realY);
 		}
 
-		HAL_Delay(500);
+		HAL_Delay(100);
 	}
 }
 
@@ -173,19 +167,19 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 			RxDataCan1[0] = 0xc6;
 		}
 
-//		CAN2_Transmit_manual(RxHeaderCan1.StdId, RxHeaderCan1.DLC, RxDataCan1);
+		CAN2_Transmit_manual(RxHeaderCan1.StdId, RxHeaderCan1.DLC, RxDataCan1);
 	}
 }
 
 // can fifo1 for can2 callback
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan) {
-	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeaderCan2, RxDataCan2)
+	if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO1, &RxHeaderCan2, RxDataCan2)
 			== HAL_OK) {
 		CAN1_Transmit_manual(RxHeaderCan2.StdId, RxHeaderCan2.DLC, RxDataCan2);
 	}
 }
 
-void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
+void CAN1_Transmit_manual(uint32_t ID_CAN, uint32_t DLC_CAN, uint8_t *DATA_CAN) {
 	//wait while mailbox will be free
 	while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan1) == 0) {
 
@@ -205,13 +199,8 @@ void CAN1_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
 			!= HAL_OK) {
 		Error_Handler();
 	}
-
-	//wait while message will sent
-	while (HAL_CAN_IsTxMessagePending(&hcan1, TxMailboxCan1)) {
-		printf("pending can1");
-	}
 }
-void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
+void CAN2_Transmit_manual(uint32_t ID_CAN, uint32_t DLC_CAN, uint8_t *DATA_CAN) {
 	//wait while mailbox will be free
 	while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan2) == 0) {
 
@@ -231,11 +220,8 @@ void CAN2_Transmit_manual(uint16_t ID_CAN, uint8_t DLC_CAN, uint8_t *DATA_CAN) {
 			!= HAL_OK) {
 		Error_Handler();
 	}
-
-	//wait while message will sent
-	while (HAL_CAN_IsTxMessagePending(&hcan2, TxMailboxCan2)) {
-	}
 }
+
 void sendGyroData(int x, int y) {
 	TxDataCan1[0] = y;
 	TxDataCan1[1] = x;
@@ -251,9 +237,7 @@ void sendGyroData(int x, int y) {
 
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
 	uint32_t er = HAL_CAN_GetError(hcan);
-	printf("error");
-
-	HAL_CAN_ResetError(&hcan);
+  	HAL_CAN_ResetError(hcan);
 }
 
 void Error_Handler(void) {
