@@ -75,7 +75,13 @@ int main(void) {
 	}
 
 	//MPU initialize
+	int initCountFailure = 0;
 	while (MPU6050_Init(&hi2c1) == 1) {
+		initCountFailure++;
+
+		if (initCountFailure == 100) {
+			break;
+		}
 	}
 
 	//loop
@@ -232,12 +238,12 @@ void sendGyroData(int x, int y) {
 	TxDataCan1[6] = 0x00;
 	TxDataCan1[7] = 0x00;
 
-	CAN1_Transmit_manual(0x685, 8, TxDataCan1);
+//	CAN2_Transmit_manual(0x685, 8, TxDataCan1);
 }
 
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan) {
 	uint32_t er = HAL_CAN_GetError(hcan);
-  	HAL_CAN_ResetError(hcan);
+	HAL_CAN_ResetError(hcan);
 }
 
 void Error_Handler(void) {
