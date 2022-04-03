@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (9-2020-q2-update)
+# Toolchain: GNU Tools for STM32 (10.3-2021.10)
 ################################################################################
 
 -include ../makefile.init
@@ -43,14 +43,14 @@ BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ART
 EXECUTABLES += \
 CanRetranslatorWithGyro.elf \
 
+MAP_FILES += \
+CanRetranslatorWithGyro.map \
+
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
 CanRetranslatorWithGyro.list \
-
-OBJCOPY_BIN += \
-CanRetranslatorWithGyro.bin \
 
 
 # All Target
@@ -60,8 +60,8 @@ all: main-build
 main-build: CanRetranslatorWithGyro.elf secondary-outputs
 
 # Tool invocations
-CanRetranslatorWithGyro.elf: $(OBJS) $(USER_OBJS) /Users/evgeny/projects/CanRetranslatorWithGyro/STM32F107RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "CanRetranslatorWithGyro.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/Users/evgeny/projects/CanRetranslatorWithGyro/STM32F107RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CanRetranslatorWithGyro.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+CanRetranslatorWithGyro.elf CanRetranslatorWithGyro.map: $(OBJS) $(USER_OBJS) /Users/evgenybozhko/Projects/pdcFilterGyro/STM32F107RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "CanRetranslatorWithGyro.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"/Users/evgenybozhko/Projects/pdcFilterGyro/STM32F107RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CanRetranslatorWithGyro.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -75,17 +75,12 @@ CanRetranslatorWithGyro.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TO
 	@echo 'Finished building: $@'
 	@echo ' '
 
-CanRetranslatorWithGyro.bin: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objcopy  -O binary $(EXECUTABLES) "CanRetranslatorWithGyro.bin"
-	@echo 'Finished building: $@'
-	@echo ' '
-
 # Other Targets
 clean:
-	-$(RM) CanRetranslatorWithGyro.bin CanRetranslatorWithGyro.elf CanRetranslatorWithGyro.list default.size.stdout
+	-$(RM) CanRetranslatorWithGyro.elf CanRetranslatorWithGyro.list CanRetranslatorWithGyro.map default.size.stdout
 	-@echo ' '
 
-secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST) $(OBJCOPY_BIN)
+secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
 
 fail-specified-linker-script-missing:
 	@echo 'Error: Cannot find the specified linker script. Check the linker settings in the build configuration.'
